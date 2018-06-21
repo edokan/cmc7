@@ -8,9 +8,9 @@ import random
 
 # Hyperparameters
 learning_rate = 0.001
-num_steps = 200
+num_steps = 100
 batch_size = 128
-display_step = 10
+display_step = 2
 num_input = 4070 
 num_classes = 15 
 dropout = 0.75 
@@ -65,6 +65,13 @@ def print_all_images() :
   for i in cmc : 
     plt.imshow(i)
     plt.show()
+    
+def print_image(img) : 
+  plt.axis('off')
+  plt.imshow(img, cmap='gray')
+  #plt.imshow(img)
+  plt.show()
+  
 
 def url_to_image(url):	
 	resp = urllib.urlopen(url)
@@ -82,8 +89,37 @@ def load_cmc7() :
     
     return np.array(cmc7List) 
 
+#global datagenerator  
+from keras.preprocessing.image import ImageDataGenerator
+datagen = ImageDataGenerator(featurewise_center=False,
+    samplewise_center=False,
+    featurewise_std_normalization=False,
+    samplewise_std_normalization=False,
+    zca_whitening=True,
+    rotation_range=10.,
+    width_shift_range=0.,
+    height_shift_range=0.,
+    shear_range=0.,
+    zoom_range=[0.4,1.2],
+    channel_shift_range=200.,
+    fill_mode='constant',
+    cval=255.,
+    horizontal_flip=False,
+    vertical_flip=False,
+    rescale=None)    
+  
 def random_augment(img) : 
   
+  #print_image(img)    
+  
+  from keras import backend as k   
+  k.set_image_dim_ordering('tf') 
+  img = np.expand_dims(img, axis=2)  
+  
+  img = datagen.random_transform(img, seed=None)    
+  img = img[:, :, 0]
+    
+  print_image(img)
   
   return img
 
@@ -134,9 +170,10 @@ with tf.Session() as sess:
 
 
 
-    '''
+    testX, testY = create_Batch()        
+    
     print("Testing Accuracy:", \
-        sess.run(accuracy, feed_dict={X: mnist.test.images[:256],
-                                      Y: mnist.test.labels[:256],
+        sess.run(accuracy, feed_dict={X: testX,
+                                      Y: testY,
                                       keep_prob: 1.0}))
-    '''
+    
